@@ -1,6 +1,6 @@
 import React from 'react'
-import microsoftbuilding from "../../../img/microsoftbuilding.jpg";
-import BillGates from "../../../img/BillGates.jpg";
+import microsoftbuilding from "../../../img/profile2.png";
+import BillGates from "../../../img/profile.png";
 import "./ProfileCard.css";
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
@@ -9,26 +9,35 @@ function ProfileCard({location}) {
   const { user } = useSelector((state) => state.authReducer.authData);
   const posts = useSelector((state)=>state.postReducer.posts)
   const serverPublic = process.env.REACT_APP_PUBLIC_FOLDER;
-    
-    const ProfilePage = true
-    
-    return (
+
+  return (
     <div className="ProfileCard">
-        
-        <div className="ProfileImages">
-        <img src={
-            user.coverPicture
-              ? serverPublic + user.coverPicture
-              : serverPublic + "profile2.png"
-          } alt="CoverImage" />
-            <img
-          src={
-            user.profilePicture
-              ? serverPublic + user.profilePicture
-              : serverPublic + "profile.png"
-          }
-          alt="ProfileImage"
+      <div className="ProfileImages">
+    
+
+{user.coverPicture ? (
+          <img
+            src={user.coverPicture}
+            alt="coverPicture"
+          />
+        ) : (
+          <img
+          src={microsoftbuilding}
+          alt="coverPicture"
         />
+        )}
+{user.profilePicture ? (
+          <img
+            src={user.profilePicture}
+            alt="profilePicture"
+          />
+        ) : (
+          <img
+          src={BillGates}
+          alt="profilePicture"
+        />
+        )}
+        
       </div>
       <div className="ProfileName">
         <span>{user.firstname} {user.lastname}</span>
@@ -74,6 +83,6 @@ function ProfileCard({location}) {
       )}
     </div>
   );
-}; 
+};
 
-export default ProfileCard
+export default ProfileCard;

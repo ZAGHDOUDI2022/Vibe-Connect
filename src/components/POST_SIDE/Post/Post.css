@@ -20,3 +20,49 @@
     align-items: flex-start;
     gap: 1.5rem;
 }
+.supp{
+float: right;  
+cursor: pointer; 
+}
+.supp:hover{
+    background-color: var(--cardColor);
+}
+
+.comm{
+    padding: 5px;
+    padding-left: 20px;
+    padding-right: 20px;
+    font-size: 12px;
+    background: linear-gradient(106.23deg, #8abef6 0%, #0e7bae 100%);
+        height: 35px;
+    cursor: pointer;
+}
+
+.comm:hover{
+    
+    background: linear-gradient(106.23deg, #8abef6 0%, #4ea5ce 100%);
+}
+
+.in{
+    background-color: var(--inputColor);
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 17px;
+    border: none;
+    outline: none;
+
+}
+
+button {
+
+  
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    background: var(--buttonBg);
+    transition: all 100ms ease-out;
+}
+
+.ee{
+    cursor: pointer;
+}

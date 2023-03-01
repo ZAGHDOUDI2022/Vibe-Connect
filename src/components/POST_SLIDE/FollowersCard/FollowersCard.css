@@ -56,7 +56,7 @@
 
 .FollowersCard>span{
     font-weight: bold;
-    color: orange;
+    color: rgb(46, 74, 250);
     align-self: center;
     cursor: pointer;
 }

@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema(
         required: true,
         minLength: 3,
         maxLength: 55,
-        unique: true,
+       
         trim: true
     },
     lastname : {
@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema(
         required: true,
         minLength: 3,
         maxLength: 55,
-        unique: true,
+       
         trim: true
     },
     isAdmin : {
@@ -41,11 +41,13 @@ const userSchema = new mongoose.Schema(
     profilePicture: String,
     coverPicture: String,
     about: String,
-    livesin: String,
+    livesIn: String,
     worksAt: String,
+    country:String,
     relationship: String,
     followers: [String] ,
-    following: [String]
+    following: [String],
+    video:String
 },
   {
     timestamps: true,

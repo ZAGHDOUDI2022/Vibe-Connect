@@ -4,8 +4,10 @@ import logo234 from "../../img/logo234.png";
 import { useDispatch, useSelector } from 'react-redux';
 import { logIn, signUp } from '../../Redux/actions/AuthActions';
 import { useNavigate } from 'react-router-dom';
+import { getAllUser } from '../../Redux/api/UserRequests';
 
 function Auth() {
+
   const initialState = {
     firstname: "",
     lastname: "",
@@ -22,6 +24,9 @@ function Auth() {
 
   const [confirmPass, setConfirmPass] = useState(true);
 
+  const [errorMessage, setErrorMessage] = useState('');
+
+  
   // const dispatch = useDispatch()
 
   // Reset Form
@@ -38,15 +43,57 @@ function Auth() {
   // Form Submission
   const handleSubmit = (e) => {
     setConfirmPass(true);
+    setErrorMessage('');
+  
     e.preventDefault();
+    
     if (isSignUp) {
+      if (data.password.length < 6) {
+        setErrorMessage('Password should be at least 6 characters long.');
+        return;
+      }
+      if (!/\S+@\S+\.\S+/.test(data.username)) {
+        setErrorMessage('Please enter a valid email address.');
+        return;
+      }
+  
       data.password === data.confirmpass
         ? dispatch(signUp(data, navigate))
         : setConfirmPass(false);
+          // Check if the user already exists
+  getAllUser()
+  .then((response) => {
+    if (response.data.find((user) => user.username === data.username)) {
+      setErrorMessage('User already exists');
     } else {
-      dispatch(logIn(data, navigate));
+      // If the email is not already registered, sign up the user
+      dispatch(signUp(data, navigate));
+    }
+  })
+  .catch((error) => {
+    console.log(error);
+  });
+     
+        
+    } else {
+     
+      getAllUser()
+      .then((response) => {
+        if (!response.data.find((user) => user.username === data.username)) {
+          setErrorMessage('User does not exist');
+        } else if (!response.data.find((user) => user.password !== data.password)) {
+          setErrorMessage('Wrong password');
+        } else {
+          // If the user exists and the password is correct, log in the user
+          dispatch(logIn(data)).then(() => navigate('/'));
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
     }
   };
+  
 
   return (
     <div className="Auth">
@@ -56,7 +103,7 @@ function Auth() {
         <img src={logo234} alt="" />
 
         <div className="Webname">
-          <h1>ZKC Media</h1>
+          <h1>Vibe Connect</h1>
           <h6>Explore the ideas throughout the world</h6>
         </div>
       </div>
@@ -133,6 +180,9 @@ function Auth() {
           >
             *Confirm password is not same
           </span>
+          {errorMessage && (
+  <span style={{ color: 'red', fontSize: '12px' }}>{errorMessage}</span>
+)}
           <div>
             <span
               style={{

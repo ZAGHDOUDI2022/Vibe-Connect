@@ -3,7 +3,6 @@ import PostShare from "../POST_SIDE/PostShare/PostShare";
 
 function ShareModal({ modalOpened, setModalOpened }) {
   const theme = useMantineTheme();
-
   return (
     <Modal
       overlayColor={
@@ -13,13 +12,13 @@ function ShareModal({ modalOpened, setModalOpened }) {
       }
       overlayOpacity={0.55}
       overlayBlur={3}
-      size="55%"
+      size='55%'
       opened={modalOpened}
       onClose={() => setModalOpened(false)}
     >
       <PostShare/>
     </Modal>
   );
-}
+};
 
 export default ShareModal;

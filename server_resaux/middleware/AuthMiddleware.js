@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken')
-const dotenv = require('dotenv')
+require('dotenv').config({path:'../config/.env'})
 
-dotenv.config();
-const secret = process.env.JWTKEY;
+
+const secret = process.env.TOKEN_SECRET;
 const authMiddleWare = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
@@ -19,4 +19,4 @@ const authMiddleWare = async (req, res, next) => {
 };
 
 
-module.exports = authMiddleWare
+module.exports = authMiddleWare 

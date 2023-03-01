@@ -1,0 +1,375 @@
+import { Modal, useMantineTheme } from "@mantine/core";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
+import { updateUser } from "../../../Redux/actions/UserAction";
+import { Image } from "cloudinary-react";
+import axios from "axios";
+
+function ProfileModal({ modalOpened, setModalOpened, data }) {
+  const theme = useMantineTheme();
+  const { password, ...other } = data;
+  const [formData, setFormData] = useState(other);
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [coverPicture, setCoverPicture] = useState(null);
+  const dispatch = useDispatch();
+  const param = useParams();
+  const [file, setFile] = useState(null);
+
+  const { user } = useSelector((state) => state.authReducer.authData);
+
+  // function to upload images to Cloudinary
+  const uploadImage = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "zaghdoudi"); // replace with your upload preset name
+    const res = await axios.post(
+      `https://api.cloudinary.com/v1_1/dcrefqy2y/image/upload`,
+      formData
+    );
+    return res.data.url;
+  };
+
+  // function to handle file uploads
+  const handleFileUpload = async (e) => {
+    const uploadedFile = e.target.files[0];
+    setFile(uploadedFile);
+    const imageUrl = await uploadImage(uploadedFile);
+    setFormData({ ...formData, [e.target.name]: imageUrl });
+  };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    let UserData = formData;
+    dispatch(updateUser(param.id, UserData));
+    setModalOpened(false);
+  };
+
+  return (
+    <Modal
+      overlayColor={
+        theme.colorScheme === "dark"
+          ? theme.colors.dark[9]
+          : theme.colors.gray[2]
+      }
+      overlayOpacity={0.55}
+      overlayBlur={3}
+      size="55%"
+      opened={modalOpened}
+      onClose={() => setModalOpened(false)}
+    >
+      <div className="infoForm">
+        <h3>Your Info</h3>
+        <form onSubmit={handleSubmit}>
+          <div>
+            Profile image
+            <input
+              type="file"
+              name="profilePicture"
+              onChange={handleFileUpload}
+            />
+            {formData.profilePicture && (
+              <Image
+                cloudName="dcrefqy2y"
+                publicId={formData.profilePicture}
+                width="50"
+                crop="scale"
+              />
+            )}
+          </div>
+          <div>
+            Cover image
+            <input
+              type="file"
+              name="coverPicture"
+              onChange={handleFileUpload}
+            />
+            {formData.coverPicture && (
+              <Image
+                cloudName="dcrefqy2y"
+                publicId={formData.coverPicture}
+                width="50"
+                crop="scale"
+              />
+            )}
+          </div>
+          <button className="button infoButton" type="submit">
+            Update
+          </button>
+        </form>
+      </div>
+    </Modal>
+  );
+}
+
+export default ProfileModal
+
+
+
+
+
+
+
+
+
+import React from 'react'
+import './TrendCard.css'
+import {TrendData} from '../../../Data/TrendData.js'
+import { useDispatch, useSelector } from 'react-redux';
+import { deleteUser } from '../../../Redux/api/UserRequests';
+
+import { deleteCurrentUser } from '../../../Redux/actions/UserAction';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+function TrendCard() {
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.authReducer.authData);
+  const { token } = useSelector((state) => state.authReducer.authData);
+  const navigate = useNavigate();
+
+  console.log(token)
+  const handleDelete = () => {
+    if (window.confirm('Are you sure you want to delete your account?')) {
+      dispatch(deleteCurrentUser(user._id, user.isAdmin, token));
+    }
+  };
+  const handleDeletee = async () => {
+    const confirmed = window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');
+    if (confirmed) {
+      try {
+        const response = await axios.delete(`/api/user/${user._id}`, {
+          data: { currentUserId: user._id, currentUserAdminStatus: user.isAdmin },
+        });
+        console.log(response.data); // Affiche "User deleted successfully"
+        // TODO: Mettre à jour l'état du composant ou rediriger vers une autre page
+       /* localStorage.removeItem(token);
+        navigate('/auth');*/
+      } catch (error) {
+        console.error(error.response.data);
+        // TODO: Gérer les erreurs
+      }
+    }
+   
+   
+  };
+  return (
+    
+    <div className="TrendCard">
+     
+    <h3>Trends for you</h3>
+    <div>
+    <div>
+
+</div>
+    </div>
+    <div>
+      <button onClick={handleDeletee}>Delete Account</button>
+    </div>
+    {TrendData.map((trend)=>{
+        return(
+            <div className="trend">
+                <span>#{trend.name}</span>
+                <span>{trend.shares}k shares</span>
+            </div>
+        )
+    })}
+
+</div>
+  )
+}
+
+export default TrendCard
+
+
+
+import React, { useState, useEffect } from 'react';
+import './Post.css';
+import Comment from '../../../img/comment.png';
+import Share from '../../../img/share.png';
+import Heart from '../../../img/like.png';
+import NotLike from '../../../img/notlike.png';
+import { useDispatch, useSelector } from 'react-redux';
+import { likePost, getLikes } from '../../../Redux/api/PostsRequests';
+import { getUser } from '../../../Redux/api/UserRequests';
+import { addComment, deletePostRequest } from '../../../Redux/actions/PostsAction';
+import Audrey from '../../../img/profile.png'
+import axios from 'axios';
+
+const Post = ({ data }) => {
+  const { user } = useSelector((state) => state.authReducer.authData);
+  const [liked, setLiked] = useState(data.likes.includes(user._id));
+  const [likes, setLikes] = useState(data.likes.length);
+  const [userInfo, setUserInfo] = useState(null);
+  const dispatch = useDispatch();
+ console.log(data.comments)
+ const [comments, setComments] = useState(data.comments);
+ const handleSubmit3 = async (e) => {
+  e.preventDefault();
+  const commenterId = user._id;
+  const commenterPseudo = user.username;
+  const text = comment;
+  const postId = data._id;
+
+  try {
+    const res = await submitComment({ postId, commenterId, commenterPseudo, text });
+    const newComment = res.data;
+    setComment("");
+    setComments([...comments, newComment]); // add new comment to local state
+  } catch (error) {
+    console.log(error);
+  }
+};
+ const submitComment = async (postId, commenterId, commenterPseudo, text) => {
+  try {
+    const response = await axios.post(`/api/post/${postId}/comment`, {
+      commenterId,
+      commenterPseudo,
+      text,
+    });
+    console.log(response.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+const handleSubmit2 = (event) => {
+  event.preventDefault(); // empêche le rafraîchissement de la page
+  dispatch(submitComment(data._id, user._id, user.firstname, comment)); // appel à la fonction submitComment avec les données nécessaires
+  setComment(""); // réinitialisation de l'état de comment
+};
+  const [comment, setComment] = useState("");
+
+  
+
+  
+
+  const { posts } = useSelector(state => state.postReducer) || [];
+  const postImage = posts.length > 0 ? posts[0].image : '';
+  console.log(postImage);
+  useEffect(() => {
+    const fetchUser = async () => {
+      const res = await getUser(data.userId);
+      setUserInfo(res.data);
+    };
+    fetchUser();
+  }, [data.userId]);
+
+  const handleLike = () => {
+    likePost(data._id, user._id);
+    setLiked((prev) => !prev);
+    liked ? setLikes((prev) => prev - 1) : setLikes((prev) => prev + 1);
+  };
+
+  const handleDelete = () => {
+    
+    dispatch(deletePostRequest(data._id, user._id));
+    window.location.reload()
+  };
+
+  return (
+    <div className='Post'>
+      <img
+        src={data.image ? process.env.REACT_APP_PUBLIC_FOLDER + data.image : ''}
+        alt=''
+      />
+  
+      <div>
+        <span>
+
+        {userInfo ? (
+            <img
+              src={userInfo.profilePicture}
+
+              className="followerImage"
+            />
+          ) : <img
+         
+          className="followerImage"
+        />}
+          <b>
+            {userInfo ? userInfo.firstname + ' ' + userInfo.lastname : null}
+          </b>
+        </span>
+        <span style={{ color: 'var(--gray)', fontSize: '12px', marginLeft: '8px' }}>
+          {new Date(data.createdAt).toLocaleString()}
+        </span>
+      </div>
+      <div className='detail'>
+        <span>{/*<b>{data.userId === user._id ? user.username : null}</b>*/}</span>
+        <span>{data.desc}</span> <br/><br/>
+        {data.image && (
+          <img
+            src={data.image}
+            alt='preview'
+            style={{ width: '670px', height: '300px' }}
+          />
+        )}
+        <button className='supp' onClick={() => {
+  if (window.confirm('Êtes-vous sûr de vouloir supprimer ce post ?')) {
+    handleDelete();
+  }
+}}>X</button>
+        <br />
+        <br />
+      </div>
+      <div className='postReact'>
+        <img
+          src={liked ? Heart : NotLike}
+          alt=''
+          style={{ cursor: 'pointer' }}
+          onClick={handleLike}
+        />
+
+<form onSubmit={handleSubmit2}>
+          <input
+          style={{width:"470px",height:"15px"}}
+          placeholder='Comment...'
+            type="text"
+            value={comment} // lier la valeur de l'input à l'état comment
+            onChange={(event) => setComment(event.target.value)} 
+            className='in'// mettre à jour l'état comment lorsqu'il y a un changement dans l'input
+          />
+          <button className='comm' type="submit">Add Comment</button><br/>
+          {/* afficher les commentaires existants */}
+          {data.comments && data.comments.map((comment) => (
+            <div key={comment._id}>
+              {comment.commenterPseudo}: {comment.text}
+            </div>
+          ))}
+        </form>
+        
+        
+      </div>
+
+      <span style={{ color: 'var(--gray)', fontSize: '12px' }}>{likes} likes</span>
+      
+         
+         
+       
+    
+    </div>
+  );
+};
+
+export default Post;
+
+
+
+ <div className="option" style={{ color: "var(--video)" }}>
+            <UilPlayCircle />
+            Video
+          </div>
+          <div className="option" style={{ color: "var(--location)" }}>
+            <UilLocationPoint />
+            Location
+          </div>
+          <div className="option" style={{ color: "var(--shedule)" }}>
+            <UilSchedule />
+            Shedule
+          </div>
+

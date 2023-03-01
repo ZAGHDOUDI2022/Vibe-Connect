@@ -24,3 +24,8 @@
     align-self: center;
     background: linear-gradient(106.23deg, #8abef6 0%, #0e7bae 100%);
 }
+.welcome{
+    font-weight: bold;
+    font-size: 15px;
+    text-align: center;
+}

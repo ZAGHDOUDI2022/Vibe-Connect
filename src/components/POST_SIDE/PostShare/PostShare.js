@@ -7,21 +7,18 @@ import { UilSchedule } from "@iconscout/react-unicons";
 import { UilTimes } from "@iconscout/react-unicons";
 import { useDispatch, useSelector } from "react-redux";
 import { uploadImage, uploadPost } from "../../../Redux/actions/UploadAction";
-import {Billgzt} from "../../../img/BillGates.jpg"
+import Billgzt from "../../../img/profile.png"
+import { getPosts } from "../../../Redux/actions/PostsAction";
 
 const PostShare = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.authReducer.authData);
   const loading = useSelector((state) => state.postReducer.uploading);
   const [image, setImage] = useState(null);
-  const imageRef = useRef();
   const desc = useRef();
   const serverPublic = process.env.REACT_APP_PUBLIC_FOLDER;
-
-
-  const [images,setImages]=useState([])
-
-
+  const [postId, setPostId] = useState(null);
+  const { posts } = useSelector(state => state.postReducer) || [];
   // handle Image Change
   const onImageChange = (event) => {
     if (event.target.files && event.target.files[0]) {
@@ -29,69 +26,45 @@ const PostShare = () => {
       setImage(img);
     }
   };
-
-  
+ 
+  const imageRef = useRef();
 
   // handle post upload
   const handleUpload = async (e) => {
     e.preventDefault();
-
+  
     //post data
     const newPost = {
-      userId: user,
+      userId: user._id,
       desc: desc.current.value,
-      
     };
-
+  
     // if there is an image with post
     if (image) {
-      const data = new FormData();
-      const fileName = Date.now() + image.name;
-      data.append("name", fileName);
-      data.append("file", image);
-      newPost.image = fileName;
-      console.log(newPost);
       try {
-        dispatch(uploadImage(data));
+        const formData = new FormData();
+        formData.append('file', image);
+        formData.append('upload_preset', 'zaghdoudi');
+        const response = await fetch(
+          'https://api.cloudinary.com/v1_1/dcrefqy2y/image/upload',
+          {
+            method: 'POST',
+            body: formData,
+          }
+        );
+        const data = await response.json();
+        newPost.image = data.secure_url;
+        console.log(newPost.image)
+        console.log(newPost)
       } catch (err) {
         console.log(err);
       }
     }
     dispatch(uploadPost(newPost));
+    console.log(newPost)
     resetShare();
-  }; 
-
-  const handleUploadd = async (e) => {
-    e.preventDefault();
-
-    //post data
-    const newPost = {
-      userId: user,
-      desc: desc.current.value,
-      
-    };
-
-    // if there is an image with post
-    if (image) {
-      const data = new FormData();
-      const fileName = Date.now() + image.name;
-      data.append("name", fileName);
-      data.append("file", image);
-      newPost.image = fileName;
-      console.log(newPost);
-      try {
-        dispatch(uploadImage(data));
-      } catch (err) {
-        console.log(err);
-      }
-    }
-    dispatch(uploadPost(newPost));
-    resetShare();
-  }; 
-
-  const  contactSubmit = async (e) => {
-    e.preventDefault();
-  }
+  };
+  
 
   
 
@@ -102,19 +75,25 @@ const PostShare = () => {
   };
   return (
     <div className="PostShare">
-      <img src={
-            user.coverPicture
-              ? serverPublic + user.coverPicture
-              : serverPublic + "profile.png"
-          } alt="CoverImage" />
-      
+   {user.profilePicture ? (
+          <img
+            src={user.profilePicture}
+            alt="profilePicture"
+          />
+        ) : (
+          <img
+          src={Billgzt}
+          alt="profilePicture"
+        />
+        )}
+     
+     
       <div>
         <input
-        ref={desc}
           type="text"
           placeholder="What's happening?"
           required
-          
+          ref={desc}
         />
         <div className="postOptions">
           <div
@@ -126,18 +105,7 @@ const PostShare = () => {
             Photo
           </div>
 
-          <div className="option" style={{ color: "var(--video)" }}>
-            <UilPlayCircle />
-            Video
-          </div>
-          <div className="option" style={{ color: "var(--location)" }}>
-            <UilLocationPoint />
-            Location
-          </div>
-          <div className="option" style={{ color: "var(--shedule)" }}>
-            <UilSchedule />
-            Shedule
-          </div>
+         
           <button
             className="button ps-button"
             onClick={handleUpload}
@@ -154,9 +122,11 @@ const PostShare = () => {
         {image && (
           <div className="previewImage">
             <UilTimes onClick={() => setImage(null)} />
-            <img src={URL.createObjectURL(image)} alt="preview" />
+            <img src={user.image} alt="preview" />
           </div>
         )}
+     
+        
       </div>
     </div>
   );

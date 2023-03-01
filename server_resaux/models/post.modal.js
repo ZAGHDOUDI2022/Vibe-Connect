@@ -6,6 +6,17 @@ const mongoose = require('mongoose');
         userId: { type: String, required: true },
         desc: {type: String, required : true},
         likes: [],
+        comments: {
+          type: [
+            {
+              commenterId:String,
+              commenterPseudo: String,
+              text: String,
+              timestamp: Number,
+            }
+          ],
+          
+        },
         createdAt: {
           type: Date,
           default: new Date(),
